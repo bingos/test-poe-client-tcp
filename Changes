@@ -1,0 +1,16 @@
+Test::POE::Client::TCP
+======================
+
+0.10	Tue Jan 20 12:27:34 GMT 2009
+	- Added 'wheel' method to get the POE::Wheel::ReadWrite object.
+
+0.08	Thu Jan 15 10:33:50 GMT 2009
+	- Enabled event 'prefix' to be specified.
+
+0.06	Tue Jul  1 10:28:19 BST 2008
+	- Managed to delete distro from CPAN, restoring.
+
+0.04	Tue May 20 18:02:45 BST 2008
+	- added server_info() method.
+0.02	
+	- Initial CPAN release
