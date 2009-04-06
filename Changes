@@ -1,6 +1,10 @@
 Test::POE::Client::TCP
 ======================
 
+1.00	Mon Apr  6 22:52:02 BST 2009
+	- Bump to 'stable' version
+	- add auto_set_repository to Makefile.PL
+
 0.10	Tue Jan 20 12:27:34 GMT 2009
 	- Added 'wheel' method to get the POE::Wheel::ReadWrite object.
 
