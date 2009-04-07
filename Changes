@@ -1,6 +1,9 @@
 Test::POE::Client::TCP
 ======================
 
+1.02	Tue Apr  7 21:06:02 BST 2009
+	- Make auto_set_repository() only run at author-time
+
 1.00	Mon Apr  6 22:52:02 BST 2009
 	- Bump to 'stable' version
 	- add auto_set_repository to Makefile.PL
