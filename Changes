@@ -1,6 +1,9 @@
 Test::POE::Client::TCP
 ======================
 
+1.04	Wed Jun 17 23:39:16 BST 2009
+	- Added accessor for alias.
+
 1.02	Tue Apr  7 21:06:02 BST 2009
 	- Make auto_set_repository() only run at author-time
 

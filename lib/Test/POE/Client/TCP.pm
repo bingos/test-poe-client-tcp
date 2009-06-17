@@ -7,7 +7,7 @@ use Socket;
 use Carp qw(carp croak);
 use vars qw($VERSION);
 
-$VERSION = '1.02';
+$VERSION = '1.04';
 
 sub spawn {
   my $package = shift;
@@ -42,12 +42,11 @@ sub spawn {
 }
 
 sub session_id {
-  return $_[0]->{session_id};
+  shift->{session_id};
 }
 
 sub shutdown {
-  my $self = shift;
-  $poe_kernel->call( $self->{session_id}, 'shutdown' );
+  $poe_kernel->call( shift->{session_id}, 'shutdown' );
 }
 
 sub server_info {
@@ -59,14 +58,17 @@ sub server_info {
 }
 
 sub connect {
-  my $self = shift;
-  $poe_kernel->call( $self->{session_id}, 'connect' );
+  $poe_kernel->call( shift->{session_id}, 'connect' );
 }
 
 sub wheel {
   my $self = shift;
   return unless $self->{socket};
   return $self->{socket};
+}
+
+sub alias {
+  shift->{alias};
 }
 
 sub _start {
@@ -654,6 +656,10 @@ Immediately disconnects a server conenction.
 
 Returns the underlying L<POE::Wheel::ReadWrite> object if we are currently connected to a server, C<undef> otherwise.
 You can use this method to call methods on the wheel object to switch filters, etc. Exercise caution.
+
+=item C<alias>
+
+Returns the currently configured alias.
 
 =back
 
