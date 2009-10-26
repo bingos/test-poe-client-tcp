@@ -1,6 +1,9 @@
 Test::POE::Client::TCP
 ======================
 
+1.06  Mon Oct 26 23:22:03 GMT 2009
+  - Amended tests and bumped required POE version
+
 1.04	Wed Jun 17 23:39:16 BST 2009
 	- Added accessor for alias.
 

@@ -7,7 +7,7 @@ use strict;
 }
 
 use Socket;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 
 POE::Session->create(

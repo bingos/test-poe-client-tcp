@@ -1,6 +1,6 @@
 use strict;
 use Socket;
-use Test::More tests => 15;
+use Test::More tests => 16;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
 use Test::POE::Client::TCP;
 

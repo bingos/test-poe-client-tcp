@@ -11,7 +11,7 @@ auto_license holder => 'Chris Williams, Rocco Caputo, Ann Barcomb and Jos Bouman
 perl_version '5.006';
 build_requires 'Test::More' => 0.47;
 build_requires 'Text::ParseWords' => 0;
-requires 'POE' => 1.004;
+requires 'POE' => 1.280;
 requires 'POE::Wheel::SocketFactory' => 0;
 requires 'POE::Filter::Line' => 0;
 requires 'POE::Wheel::ReadWrite' => 0;
