@@ -1,6 +1,9 @@
 Test::POE::Client::TCP
 ======================
 
+1.08  Wed Apr 28 15:30:13 BST 2010
+  - The 'oh fuck' I deleted it from CPAN release
+
 1.06  Mon Oct 26 23:22:03 GMT 2009
   - Amended tests and bumped required POE version
 
