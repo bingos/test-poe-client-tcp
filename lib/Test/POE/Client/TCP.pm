@@ -7,7 +7,7 @@ use Socket;
 use Carp qw(carp croak);
 use vars qw($VERSION);
 
-$VERSION = '1.08';
+$VERSION = '1.10';
 
 sub spawn {
   my $package = shift;
@@ -77,7 +77,7 @@ sub _start {
 
   if ( $self->{alias} ) {
 	$kernel->alias_set( $self->{alias} );
-  } 
+  }
   else {
 	$kernel->refcount_increment( $self->{session_id} => __PACKAGE__ );
   }
@@ -101,7 +101,7 @@ sub _connect {
   my $args;
   if ( ref( $_[ARG0] ) eq 'HASH' ) {
     $args = { %{ $_[ARG0] } };
-  } 
+  }
   else {
     $args = { @_[ARG0..$#_] };
   }
@@ -111,7 +111,7 @@ sub _connect {
       carp "You must provide both 'address' and 'port' parameters\n";
       return;
     }
-    $self->{address} = $args->{address}; 
+    $self->{address} = $args->{address};
     $self->{port} = $args->{port};
   }
 
@@ -127,7 +127,7 @@ sub _connect {
     carp "Connection already in progress\n";
     return;
   }
-  
+
   $self->{factory} = POE::Wheel::SocketFactory->new(
     RemoteAddress  => $self->{address},
     RemotePort     => $self->{port},
@@ -263,6 +263,10 @@ sub terminate {
 sub _terminate {
   my ($kernel,$self) = @_[KERNEL,OBJECT];
   return unless $self->{socket};
+  if ( $^O =~ /(cygwin|MSWin)/ ) {
+    $self->{socket}->shutdown_input();
+    $self->{socket}->shutdown_output();
+  }
   delete $self->{socket};
   delete $self->{_server_info};
   $self->_send_event( $self->{_prefix} . 'disconnected' );
@@ -383,7 +387,7 @@ sub _unregister_sessions {
   foreach my $session_id ( keys %{ $self->{sessions} } ) {
      if (--$self->{sessions}->{$session_id}->{refcnt} <= 0) {
         delete $self->{sessions}->{$session_id};
-	$poe_kernel->refcount_decrement($session_id, __PACKAGE__) 
+	$poe_kernel->refcount_decrement($session_id, __PACKAGE__)
 		unless ( $session_id eq $testd_id );
      }
   }
@@ -448,13 +452,13 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
   use Test::More tests => 15;
   use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
   use Test::POE::Client::TCP;
-  
+
   my @data = (
     'This is a test',
     'This is another test',
     'This is the last test',
   );
-  
+
   POE::Session->create(
     package_states => [
   	'main' => [qw(
@@ -472,10 +476,10 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
     ],
     heap => { data => \@data, },
   );
-  
+
   $poe_kernel->run();
   exit 0;
-  
+
   sub _start {
     my ($kernel,$heap) = @_[KERNEL,HEAP];
     $heap->{listener} = POE::Wheel::SocketFactory->new(
@@ -490,7 +494,7 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
     $heap->{testc} = Test::POE::Client::TCP->spawn();
     return;
   }
-  
+
   sub _accept {
     my ($kernel,$heap,$socket) = @_[KERNEL,HEAP,ARG0];
     my $wheel = POE::Wheel::ReadWrite->new(
@@ -501,27 +505,27 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
     $heap->{wheels}->{ $wheel->ID } = $wheel;
     return;
   }
-  
+
   sub _failed {
     my ($kernel,$heap,$operation,$errnum,$errstr,$wheel_id) = @_[KERNEL,HEAP,ARG0..ARG3];
     die "Wheel $wheel_id generated $operation error $errnum: $errstr\n";
     return;
   }
-  
+
   sub _sock_in {
     my ($heap,$input,$wheel_id) = @_[HEAP,ARG0,ARG1];
     pass('Got input from client');
     $heap->{wheels}->{ $wheel_id }->put( $input ) if $heap->{wheels}->{ $wheel_id };
     return;
   }
-  
+
   sub _sock_err {
     my ($heap,$wheel_id) = @_[HEAP,ARG3];
     pass('Client disconnected');
     delete $heap->{wheels}->{ $wheel_id };
     return;
   }
-  
+
   sub testc_registered {
     my ($kernel,$sender,$object) = @_[KERNEL,SENDER,ARG0];
     pass($_[STATE]);
@@ -529,19 +533,19 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
     $kernel->post( $sender, 'connect', { address => '127.0.0.1', port => $port } );
     return;
   }
-  
+
   sub testc_connected {
     my ($kernel,$heap,$sender) = @_[KERNEL,HEAP,SENDER];
     pass($_[STATE]);
     $kernel->post( $sender, 'send_to_server', $heap->{data}->[0] );
     return;
   }
-  
+
   sub testc_flushed {
     pass($_[STATE]);
     return;
   }
-  
+
   sub testc_input {
     my ($heap,$input) = @_[HEAP,ARG0];
     pass('Got something back from the server');
@@ -554,7 +558,7 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
     $poe_kernel->post( $_[SENDER], 'send_to_server', $heap->{data}->[0] );
     return;
   }
-  
+
   sub testc_disconnected {
     my ($heap,$state) = @_[HEAP,STATE];
     pass($state);
@@ -566,7 +570,7 @@ Test::POE::Client::TCP - A POE Component providing TCP client services for test 
 
 =head1 DESCRIPTION
 
-Test::POE::Client::TCP is a L<POE> component that provides a TCP client framework for inclusion in 
+Test::POE::Client::TCP is a L<POE> component that provides a TCP client framework for inclusion in
 client component test cases, instead of having to roll your own.
 
 Once registered with the component, a session will receive events related to connections made, disconnects,
@@ -574,7 +578,7 @@ flushed output and input from the specified server.
 
 =head1 CONSTRUCTOR
 
-=over 
+=over
 
 =item C<spawn>
 
@@ -598,7 +602,7 @@ may provide either a C<SCALAR>, C<ARRAYREF> or an C<OBJECT>.
 If the component is C<spawn>ed within another session it will automatically C<register> the parent session
 to receive C<all> events.
 
-C<address> and C<port> are optional within C<spawn>, but if they aren't specified they must be provided to subsequent C<connect>s. If 
+C<address> and C<port> are optional within C<spawn>, but if they aren't specified they must be provided to subsequent C<connect>s. If
 C<autoconnect> is specified, C<address> and C<port> must also be defined.
 
 =back
@@ -639,13 +643,13 @@ with the following keys:
 
 =item C<send_to_server>
 
-Send some output to the connected server. The first parameter is a string of text to send. This parameter may also be 
+Send some output to the connected server. The first parameter is a string of text to send. This parameter may also be
 an arrayref of items to send to the client. If the filter you have used requires an arrayref as
 input, nest that arrayref within another arrayref.
 
 =item C<disconnect>
 
-Places the server connection into pending disconnect state. Set this, then send an applicable message to the server 
+Places the server connection into pending disconnect state. Set this, then send an applicable message to the server
 using C<send_to_server()> and the server connection will be terminated.
 
 =item C<terminate>
@@ -696,13 +700,13 @@ Terminates the component. It will terminate any pending connects or connections.
 
 =item C<send_to_server>
 
-Send some output to the connected server. The first parameter is a string of text to send. This parameter may also be 
+Send some output to the connected server. The first parameter is a string of text to send. This parameter may also be
 an arrayref of items to send to the client. If the filter you have used requires an arrayref as
 input, nest that arrayref within another arrayref.
 
 =item C<disconnect>
 
-Places the server connection into pending disconnect state. Set this, then send an applicable message to the server 
+Places the server connection into pending disconnect state. Set this, then send an applicable message to the server
 using C<send_to_server()> and the server connection will be terminated.
 
 =item C<terminate>
@@ -724,8 +728,8 @@ This event is sent to a registering session. ARG0 is the Test::POE::Client::TCP 
 
 =item C<testc_socket_failed>
 
-Generated if the component cannot make a socket connection. 
-ARG0 contains the name of the operation that failed. 
+Generated if the component cannot make a socket connection.
+ARG0 contains the name of the operation that failed.
 ARG1 and ARG2 hold numeric and string values for $!, respectively.
 
 =item C<testc_connected>

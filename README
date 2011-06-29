@@ -8,13 +8,13 @@ SYNOPSIS
       use Test::More tests => 15;
       use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
       use Test::POE::Client::TCP;
-  
+
       my @data = (
         'This is a test',
         'This is another test',
         'This is the last test',
       );
-  
+
       POE::Session->create(
         package_states => [
             'main' => [qw(
@@ -32,10 +32,10 @@ SYNOPSIS
         ],
         heap => { data => \@data, },
       );
-  
+
       $poe_kernel->run();
       exit 0;
-  
+
       sub _start {
         my ($kernel,$heap) = @_[KERNEL,HEAP];
         $heap->{listener} = POE::Wheel::SocketFactory->new(
@@ -50,7 +50,7 @@ SYNOPSIS
         $heap->{testc} = Test::POE::Client::TCP->spawn();
         return;
       }
-  
+
       sub _accept {
         my ($kernel,$heap,$socket) = @_[KERNEL,HEAP,ARG0];
         my $wheel = POE::Wheel::ReadWrite->new(
@@ -61,27 +61,27 @@ SYNOPSIS
         $heap->{wheels}->{ $wheel->ID } = $wheel;
         return;
       }
-  
+
       sub _failed {
         my ($kernel,$heap,$operation,$errnum,$errstr,$wheel_id) = @_[KERNEL,HEAP,ARG0..ARG3];
         die "Wheel $wheel_id generated $operation error $errnum: $errstr\n";
         return;
       }
-  
+
       sub _sock_in {
         my ($heap,$input,$wheel_id) = @_[HEAP,ARG0,ARG1];
         pass('Got input from client');
         $heap->{wheels}->{ $wheel_id }->put( $input ) if $heap->{wheels}->{ $wheel_id };
         return;
       }
-  
+
       sub _sock_err {
         my ($heap,$wheel_id) = @_[HEAP,ARG3];
         pass('Client disconnected');
         delete $heap->{wheels}->{ $wheel_id };
         return;
       }
-  
+
       sub testc_registered {
         my ($kernel,$sender,$object) = @_[KERNEL,SENDER,ARG0];
         pass($_[STATE]);
@@ -89,19 +89,19 @@ SYNOPSIS
         $kernel->post( $sender, 'connect', { address => '127.0.0.1', port => $port } );
         return;
       }
-  
+
       sub testc_connected {
         my ($kernel,$heap,$sender) = @_[KERNEL,HEAP,SENDER];
         pass($_[STATE]);
         $kernel->post( $sender, 'send_to_server', $heap->{data}->[0] );
         return;
       }
-  
+
       sub testc_flushed {
         pass($_[STATE]);
         return;
       }
-  
+
       sub testc_input {
         my ($heap,$input) = @_[HEAP,ARG0];
         pass('Got something back from the server');
@@ -114,7 +114,7 @@ SYNOPSIS
         $poe_kernel->post( $_[SENDER], 'send_to_server', $heap->{data}->[0] );
         return;
       }
-  
+
       sub testc_disconnected {
         my ($heap,$state) = @_[HEAP,STATE];
         pass($state);
