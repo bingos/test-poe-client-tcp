@@ -5,6 +5,7 @@ package Test::POE::Client::TCP;
 use strict;
 use warnings;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Line);
+use POSIX qw[ETIMEDOUT];
 use Socket;
 use Carp qw(carp croak);
 
@@ -18,6 +19,7 @@ sub spawn {
      carp "You must provide both 'address' and 'port' parameters when specifying 'autoconnect'\n";
      return;
   }
+  delete $opts{timeout} unless $opts{timeout} and $opts{timeout} =~ m!^\d+$!;
   my $self = bless \%opts, $package;
   $self->{_prefix} = delete $self->{prefix};
   $self->{_prefix} = 'testc_' unless defined $self->{_prefix};
@@ -30,6 +32,7 @@ sub spawn {
 		      disconnect     => '_disconnect',
 		      terminate      => '_terminate',
 		      connect	     => '_connect',
+          _timeout     => '_socket_fail',
 	            },
 	   $self => [ qw(_start register unregister _socket_up _socket_fail _conn_input _conn_error _conn_flushed _send_to_server __send_event _disconnect) ],
 	],
@@ -140,6 +143,7 @@ sub _connect {
     Reuse          => 'yes',               # Lets the port be reused
   );
 
+  $kernel->delay( '_timeout', $self->{timeout}, 'connect', ETIMEDOUT, POSIX::strerror( ETIMEDOUT ) ) if $self->{timeout};
   return;
 }
 
@@ -148,6 +152,7 @@ sub _socket_up {
   my $sockaddr = inet_ntoa( ( unpack_sockaddr_in ( CORE::getsockname $socket ) )[1] );
   my $sockport = ( unpack_sockaddr_in ( CORE::getsockname $socket ) )[0];
   $peeraddr = inet_ntoa( $peeraddr );
+  $kernel->delay( '_timeout' );
 
   delete $self->{factory};
 
@@ -237,6 +242,7 @@ sub _test_filter {
 sub _socket_fail {
   my ($kernel,$self,$operation,$errnum,$errstr,$wheel_id) = @_[KERNEL,OBJECT,ARG0..ARG3];
   carp "Wheel $wheel_id generated $operation error $errnum: $errstr\n" if $self->{debug};
+  $kernel->delay( '_timeout' );
   delete $self->{factory};
   $self->_send_event( $self->{_prefix} . 'socket_failed', $operation, $errnum, $errstr );
   return;
@@ -590,6 +596,7 @@ Takes a number of optional arguments:
   'localport', specify that connections be made from a particular port;
   'autoconnect', set to a true value to make the poco connect immediately;
   'prefix', specify an event prefix other than the default of 'testc';
+  'timeout', specify number of seconds to wait for socket timeouts;
 
 The semantics for C<filter>, C<inputfilter> and C<outputfilter> are the same as for L<POE::Component::Server::TCP> in that one
 may provide either a C<SCALAR>, C<ARRAYREF> or an C<OBJECT>.
