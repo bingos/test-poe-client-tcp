@@ -47,6 +47,12 @@ sub session_id {
   shift->{session_id};
 }
 
+sub context {
+  my $self = shift;
+  return $self->{context} if defined $self->{context};
+  return;
+}
+
 sub shutdown {
   $poe_kernel->call( shift->{session_id}, 'shutdown' );
 }
@@ -597,6 +603,7 @@ Takes a number of optional arguments:
   'autoconnect', set to a true value to make the poco connect immediately;
   'prefix', specify an event prefix other than the default of 'testc';
   'timeout', specify number of seconds to wait for socket timeouts;
+  'context', anything that can fit into a scalar, such as a ref, etc.
 
 The semantics for C<filter>, C<inputfilter> and C<outputfilter> are the same as for L<POE::Component::Server::TCP> in that one
 may provide either a C<SCALAR>, C<ARRAYREF> or an C<OBJECT>.
@@ -666,6 +673,10 @@ You can use this method to call methods on the wheel object to switch filters, e
 =item C<alias>
 
 Returns the currently configured alias.
+
+=item C<context>
+
+Returns whatever was provided as C<context> when the component was spawned. If nothing was provided then it returns nothing.
 
 =back
 
