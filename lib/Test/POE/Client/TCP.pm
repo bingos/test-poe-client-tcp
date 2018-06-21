@@ -663,7 +663,7 @@ using C<send_to_server()> and the server connection will be terminated.
 
 =item C<terminate>
 
-Immediately disconnects a server conenction.
+Immediately disconnects a server connection.
 
 =item C<wheel>
 
@@ -724,7 +724,7 @@ using C<send_to_server()> and the server connection will be terminated.
 
 =item C<terminate>
 
-Immediately disconnects a server conenction.
+Immediately disconnects a server connection.
 
 =back
 
