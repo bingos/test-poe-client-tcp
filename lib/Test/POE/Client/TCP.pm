@@ -9,6 +9,16 @@ use POSIX qw[ETIMEDOUT];
 use Socket;
 use Carp qw(carp croak);
 
+our $GOT_SSL;
+
+BEGIN {
+    eval {
+        require POE::Component::SSLify;
+        import POE::Component::SSLify qw( Client_SSLify );
+        $GOT_SSL = 1;
+    };
+}
+
 sub spawn {
   my $package = shift;
   my %opts = @_;
@@ -19,8 +29,14 @@ sub spawn {
      carp "You must provide both 'address' and 'port' parameters when specifying 'autoconnect'\n";
      return;
   }
+  my $usessl = delete $opts{usessl};
+  if ( $usessl && !$GOT_SSL ) {
+     carp "'usessl' specified but POE::Component::SSLify is not available\n";
+     return;
+  }
   delete $opts{timeout} unless $opts{timeout} and $opts{timeout} =~ m!^\d+$!;
   my $self = bless \%opts, $package;
+  $self->{usessl}  = $usessl;
   $self->{_prefix} = delete $self->{prefix};
   $self->{_prefix} = 'testc_' unless defined $self->{_prefix};
   $self->{_prefix} .= '_' unless $self->{_prefix} =~ /\_$/;
@@ -122,6 +138,13 @@ sub _connect {
     $self->{address} = $args->{address};
     $self->{port} = $args->{port};
   }
+  my $usessl = delete $args->{usessl};
+  if ( $usessl && !$GOT_SSL ) {
+     carp "'usessl' specified but POE::Component::SSLify is not available\n";
+     return;
+  }
+
+  $self->{usessl} = $usessl if defined $usessl;
 
   $self->{localaddr} = $args->{localaddr} if $args->{localaddr};
   $self->{localport} = $args->{localaddr} if $args->{localport};
@@ -161,6 +184,16 @@ sub _socket_up {
   $kernel->delay( '_timeout' );
 
   delete $self->{factory};
+
+  if ( $self->{usessl} && $GOT_SSL ) {
+    eval {
+        $socket = Client_SSLify( $socket );
+        if ( $@ ) {
+           warn "Couldn't use an SSL socket: $@\n";
+           $self->{usessl} = 0;
+        }
+    };
+  }
 
   $self->{socket} = POE::Wheel::ReadWrite->new(
     Handle => $socket,
@@ -604,6 +637,7 @@ Takes a number of optional arguments:
   'prefix', specify an event prefix other than the default of 'testc';
   'timeout', specify number of seconds to wait for socket timeouts;
   'context', anything that can fit into a scalar, such as a ref, etc.
+  'usessl', enable SSL/TLS if POE::Component::SSLify is available;
 
 The semantics for C<filter>, C<inputfilter> and C<outputfilter> are the same as for L<POE::Component::Server::TCP> in that one
 may provide either a C<SCALAR>, C<ARRAYREF> or an C<OBJECT>.
@@ -613,6 +647,8 @@ to receive C<all> events.
 
 C<address> and C<port> are optional within C<spawn>, but if they aren't specified they must be provided to subsequent C<connect>s. If
 C<autoconnect> is specified, C<address> and C<port> must also be defined.
+
+C<usessl> is dependent on whether L<POE::Component::SSLify> is available.
 
 =back
 
@@ -628,6 +664,7 @@ Initiates a connection to the given server. Takes a number of parameters:
   'port', the remote port to connect to;
   'localaddr', specify that connections be made from a particular local address, optional;
   'localport', specify that connections be made from a particular port, optional;
+  'usessl', enable SSL/TLS if POE::Component::SSLify is available;
 
 C<address> and C<port> are optional if they have been already specified during C<spawn>.
 
