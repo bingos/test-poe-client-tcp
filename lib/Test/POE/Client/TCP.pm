@@ -14,7 +14,7 @@ our $GOT_SSL;
 BEGIN {
     eval {
         require POE::Component::SSLify;
-        import POE::Component::SSLify qw( Client_SSLify );
+        import POE::Component::SSLify qw( Client_SSLify SSLify_ContextCreate );
         $GOT_SSL = 1;
     };
 }
