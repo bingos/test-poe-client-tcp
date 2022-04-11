@@ -276,7 +276,7 @@ sub _load_filter {
     }
 }
 
-# Test if a Filter can be loaded, return sucess or failure
+# Test if a Filter can be loaded, return success or failure
 sub _test_filter {
     my $filter = shift;
     my $eval = eval {
@@ -287,7 +287,7 @@ sub _test_filter {
     if (!$eval and $@) {
         carp(
           "Failed to load [$filter]\n" .
-          "Reason $@\nUsing defualt POE::Filter::Line "
+          "Reason $@\nUsing default POE::Filter::Line "
         );
         return 0;
     }
